@@ -8,6 +8,8 @@ dataset = pd.read_csv("./PU_dataset_1.csv", header=None)
 
 amount_of_feature = len(dataset.columns)
 
+# 添加过采样
+
 dataset = dataset.values
 print("values")
 print(dataset)
@@ -90,30 +92,75 @@ print(model_func.summary())
 
 from timeit import default_timer as timer
 start = timer()
-history = model_Line.fit(lineData,
+history_line = model_Line.fit(lineData,
                     lableData,
-                    batch_size=128,
-                    epochs=100,
+                    batch_size=8,
+                    epochs=30,
                     validation_split=0.2,
-                    verbose=2)
+                    verbose=1)
 end = timer()
-print(end - start)
-history_dict = history.history
-history_dict.keys()
+print("line训练时间： ", end - start)
+
 
 # ==================func train=======================
 
 from timeit import default_timer as timer
 start = timer()
-history = model_func.fit(funcData,
+history_func = model_func.fit(funcData,
                     lableData,
-                    batch_size=128,
-                    epochs=100,
+                    batch_size=8,
+                    epochs=30,
                     validation_split=0.2,
-                    verbose=2)
+                    verbose=1)
 end = timer()
-print(end - start)
-history_dict = history.history
-history_dict.keys()
+print("func训练时间： ", end - start)
 
-# ==================ending of train...=======================
+
+# ==================figure of line=======================
+
+
+history_dict_line = history_line.history
+history_dict_line.keys()
+
+import matplotlib.pyplot as plt
+
+loss_values = history_dict_line['loss']
+val_loss_values = history_dict_line['val_loss']
+loss_values50 = loss_values[0:150]
+val_loss_values50 = val_loss_values[0:150]
+epochs = range(1, len(loss_values50) + 1)
+plt.plot(epochs, loss_values50, 'b',color = 'blue', label='Training loss')
+plt.plot(epochs, val_loss_values50, 'b',color='red', label='Validation loss')
+plt.rc('font', size = 18)
+plt.title('Training and validation loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.legend()
+plt.xticks(epochs)
+fig = plt.gcf()
+fig.set_size_inches(15,7)
+#fig.savefig('img/25/mrftest&validationlossconv1dlstm.png', dpi=300)
+plt.show()
+
+# ==================figure of func=======================
+
+history_dict_func = history_func.history
+history_dict_func.keys()
+
+loss_values = history_dict_func['loss']
+val_loss_values = history_dict_func['val_loss']
+loss_values50 = loss_values[0:150]
+val_loss_values50 = val_loss_values[0:150]
+epochs = range(1, len(loss_values50) + 1)
+plt.plot(epochs, loss_values50, 'b',color = 'blue', label='Training loss')
+plt.plot(epochs, val_loss_values50, 'b',color='red', label='Validation loss')
+plt.rc('font', size = 18)
+plt.title('Training and validation loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.legend()
+plt.xticks(epochs)
+fig = plt.gcf()
+fig.set_size_inches(15,7)
+#fig.savefig('img/25/mrftest&validationlossconv1dlstm.png', dpi=300)
+plt.show()
