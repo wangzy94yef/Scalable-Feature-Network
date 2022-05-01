@@ -31,11 +31,17 @@ lableData = dataset[:, -1]
 print(lineData)
 print(funcData)
 print(lableData)
+print("===================")
 
-# print(lineData.shape[0])
-# print(lineData.shape[1])
-# print(funcData.shape[0])
-# print(funcData.shape[1])
+print(lineData.shape)
+
+print("===================")
+
+print(lineData.shape[0])
+print(lineData.shape[1])
+print(funcData.shape[0])
+print(funcData.shape[1])
+print("===================")
 
 print(amount_of_feature)
 
@@ -48,7 +54,7 @@ print(lableData.shape)
 
 import math
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Dropout, Flatten, Conv1D, MaxPooling1D
+from keras.layers import Dense, Activation, Dropout, Flatten, Conv1D, MaxPooling1D, concatenate
 from keras.layers.recurrent import LSTM
 from keras import losses
 from keras import optimizers
@@ -58,14 +64,16 @@ def build_model_line(input):
     model.add(Dense(128, input_shape=(input[1], input[0])))
     model.add(Conv1D(filters=24, kernel_size=1, padding='valid', activation='relu', kernel_initializer="uniform"))
     model.add(MaxPooling1D(pool_size=2, padding='valid'))
-    model.add(Conv1D(filters=48, kernel_size=1, padding='valid', activation='relu', kernel_initializer="uniform"))
+    model.add(Conv1D(filters=48, kernel_size=2, padding='valid', activation='relu', kernel_initializer="uniform"))
     model.add(MaxPooling1D(pool_size=2, padding='valid'))
     model.add(LSTM(40, return_sequences=True))
     model.add(LSTM(32, return_sequences=False))
     model.add(Dense(32, activation="relu", kernel_initializer="uniform"))
     # model.add(Dropout(0.2))
     model.add(Dense(1, activation="relu", kernel_initializer="uniform"))
-    model.compile(loss='mse', optimizer='adam', metrics=['mae'])
+    # model.outputs
+    model.compile(loss='mse', optimizer='SGD', metrics=['acc'])
+
     return model
 
 def build_model_func(input):
@@ -73,20 +81,29 @@ def build_model_func(input):
     model.add(Dense(128, input_shape=(input[1], input[0])))
     model.add(Conv1D(filters=24, kernel_size=1, padding='valid', activation='relu', kernel_initializer="uniform"))
     model.add(MaxPooling1D(pool_size=2, padding='valid'))
-    model.add(Conv1D(filters=48, kernel_size=1, padding='valid', activation='relu', kernel_initializer="uniform"))
+    model.add(Conv1D(filters=48, kernel_size=2, padding='valid', activation='relu', kernel_initializer="uniform"))
     model.add(MaxPooling1D(pool_size=2, padding='valid'))
     model.add(LSTM(40, return_sequences=True))
     model.add(LSTM(32, return_sequences=False))
     model.add(Dense(32, activation="relu", kernel_initializer="uniform"))
     # model.add(Dropout(0.2))
     model.add(Dense(1, activation="relu", kernel_initializer="uniform"))
-    model.compile(loss='mse', optimizer='adam', metrics=['mae'])
+    # model.outputs
+    model.compile(loss='mse', optimizer='SGD', metrics=['acc'])
+
     return model
+
 
 model_Line = build_model_line([1, 10, 1])
 print(model_Line.summary())
 model_func = build_model_func([1, 11, 1])
 print(model_func.summary())
+
+model_concat = np.concatenate([model_Line.outputs, model_func.outputs])
+print(model_concat)
+
+
+
 
 # ==================line train=======================
 
