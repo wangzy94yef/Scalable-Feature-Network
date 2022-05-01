@@ -1,3 +1,5 @@
+from contextlib import redirect_stdout
+
 import pandas as pd
 import numpy as np
 import readDataset
@@ -89,7 +91,7 @@ def compound_cnn(width, height, filters = (24, 48), regress = False):
     x = Dense(32)(x)
     x = Dropout(0.2)(x)
 
-    x = Dense(1)(x)
+    # x = Dense(1)(x)
 
     model = Model(inputs, x)
     return model
@@ -106,8 +108,21 @@ x = Dense(22, activation = "softmax")(combinedCNNInput)
 model = Model(inputs = [CNN_line.input,CNN_func.input], outputs = x)
 
 print(model.summary())
+# 打印summary
+with open('CNN_CNN_BiLSTM_summary.txt', 'w') as f:
+    with redirect_stdout(f):
+        model.summary()
 
 opt = keras.optimizers.rmsprop(lr=0.0001, rho=0.9, epsilon=1e-6, decay=1e-6)
 model.compile(loss='mse', optimizer='SGD', metrics=['accuracy'])
 
-
+from timeit import default_timer as timer
+start = timer()
+history_func = model.fit([CNN_line.input,CNN_func.input],
+                    lableData,
+                    batch_size=8,
+                    epochs=30,
+                    validation_split=0.2,
+                    verbose=2)
+end = timer()
+print("训练时间： ", end - start)
