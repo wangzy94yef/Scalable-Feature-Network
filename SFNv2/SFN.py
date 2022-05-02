@@ -55,10 +55,11 @@ print(lableData.shape)
 
 import math
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Dropout, Flatten, Conv1D, MaxPooling1D, concatenate
+from keras.layers import Dense, Activation, Dropout, Flatten, Conv1D, MaxPooling1D, concatenate, Input
 from keras.layers.recurrent import LSTM
 from keras import losses, Model
 from keras import optimizers
+from keras import backend as K
 
 # opt = keras.optimizers.rmsprop(lr=0.0001, rho=0.9, epsilon=1e-6, decay=1e-6)
 opt = keras.optimizers.sgd(lr=0.0001, decay=1e-6)
@@ -66,12 +67,27 @@ opt = keras.optimizers.sgd(lr=0.0001, decay=1e-6)
 # opt = keras.optimizers.adagrad(lr=0.0001, decay=1e-6)
 
 def build_model_line(input):
+
+    inputs = Input(shape=input)
+    x = Dense(128, activation="relu", kernel_initializer="uniform")(inputs)
+    x = Conv1D(filters=24, kernel_size=1, padding='same', activation='relu', kernel_initializer="uniform")(x)
+    x = MaxPooling1D(pool_size=2, padding='same')(x)
+    x = Conv1D(filters=48, kernel_size=2, padding='same', activation='relu', kernel_initializer="uniform")(x)
+    x = MaxPooling1D(pool_size=2, padding='same')(x)
+    x = LSTM(40, return_sequences=True)(x)
+    x = LSTM(32, return_sequences=False)(x)
+    x = Dense(32, activation="relu", kernel_initializer="uniform")(x)
+    # model.add(Dropout(0.2))
+    x = Dense(1, activation="relu", kernel_initializer="uniform")(x)
+    model = Model(inputs=inputs, outputs=x)
+
+    '''
     model = Sequential()
     model.add(Dense(128, input_shape=(input[1], input[0])))
     model.add(Conv1D(filters=24, kernel_size=1, padding='valid', activation='relu', kernel_initializer="uniform"))
-    model.add(MaxPooling1D(pool_size=2, padding='valid'))
+    model.add(MaxPooling1D(pool_size=2, padding='same'))
     model.add(Conv1D(filters=48, kernel_size=2, padding='valid', activation='relu', kernel_initializer="uniform"))
-    model.add(MaxPooling1D(pool_size=2, padding='valid'))
+    model.add(MaxPooling1D(pool_size=2, padding='same'))
     model.add(LSTM(40, return_sequences=True))
     model.add(LSTM(32, return_sequences=False))
     model.add(Dense(32, activation="relu", kernel_initializer="uniform"))
@@ -79,10 +95,24 @@ def build_model_line(input):
     model.add(Dense(1, activation="relu", kernel_initializer="uniform"))
     # model.outputs
     model.compile(loss='mse', optimizer=opt, metrics=['acc'])
-
+    '''
     return model
 
 def build_model_func(input):
+    inputs = Input(shape=input)
+    x = Dense(128, activation="relu", kernel_initializer="uniform")(inputs)
+    x = Conv1D(filters=24, kernel_size=1, padding='same', activation='relu', kernel_initializer="uniform")(x)
+    x = MaxPooling1D(pool_size=2, padding='same')(x)
+    x = Conv1D(filters=48, kernel_size=2, padding='same', activation='relu', kernel_initializer="uniform")(x)
+    x = MaxPooling1D(pool_size=2, padding='same')(x)
+    x = LSTM(40, return_sequences=True)(x)
+    x = LSTM(32, return_sequences=False)(x)
+    x = Dense(32, activation="relu", kernel_initializer="uniform")(x)
+    # model.add(Dropout(0.2))
+    x = Dense(1, activation="relu", kernel_initializer="uniform")(x)
+    model = Model(inputs=inputs, outputs=x)
+
+    '''
     model = Sequential()
     model.add(Dense(128, input_shape=(input[1], input[0])))
     model.add(Conv1D(filters=24, kernel_size=1, padding='valid', activation='relu', kernel_initializer="uniform"))
@@ -96,72 +126,103 @@ def build_model_func(input):
     model.add(Dense(1, activation="relu", kernel_initializer="uniform"))
     # model.outputs
     model.compile(loss='mse', optimizer=opt, metrics=['acc'])
+    '''
 
     return model
 
+model_Line = build_model_line([10, 1])
+# print(model_Line.summary())
+model_func = build_model_func([11, 1])
+# print(model_func.summary())
 
-model_Line = build_model_line([1, 10, 1])
-print(model_Line.summary())
-model_func = build_model_func([1, 11, 1])
-print(model_func.summary())
+print(model_Line.outputs.__class__)
 
-model_concat = np.concatenate([model_Line.outputs, model_func.outputs])
+model_concat = concatenate([model_Line.output, model_func.output])
 print(model_concat.__class__)
 print("class: !!! : !!!： ",lineData.__class__)
 print("class: !!! : !!!： ",[lineData, funcData].__class__)
+
+#
+model_concat = Dense(128,activation="relu", kernel_initializer="uniform")(model_concat)
+model_concat = Dropout(0.25)(model_concat)
+model_concat = Dense(16,activation="relu", kernel_initializer="uniform")(model_concat)
+model_concat = Dropout(0.25)(model_concat)
+model_concat = Dense(1,activation="relu", kernel_initializer="uniform")(model_concat)
+#
+model_concat = Model(inputs = [model_Line.input, model_func.input], outputs = model_concat)
+
+opt = keras.optimizers.SGD(lr=0.0001, decay=1e-6)
+model_concat.compile(loss='mse', optimizer=opt, metrics=['accuracy'])
+print(model_concat.summary())
 #
 # model_concat = Dense(1, activation="softmax")(model_concat)
 #
 # model = Model(inputs = [model_Line.input,model_func.input], outputs = model_concat)
 
 # # ==================concat train=======================
-#
-#
-# cmdData = np.array([lineData.ravel(), funcData.ravel()])
-# for x in cmdData:
-#     print(x)
-# print(cmdData.__class__)
+
+from timeit import default_timer as timer
+start = timer()
+history_concat = model_concat.fit([lineData, funcData],
+                    lableData,
+                    batch_size=32,
+                    epochs=30,
+                    validation_split=0.2,
+                    verbose=1)
+end = timer()
+print("concat训练时间： ", end - start)
+
+# # ==================concat figure=======================
+
+history_dict_line = history_concat.history
+history_dict_line.keys()
+
+import matplotlib.pyplot as plt
+
+loss_values = history_dict_line['loss']
+val_loss_values = history_dict_line['val_loss']
+loss_values50 = loss_values[0:150]
+val_loss_values50 = val_loss_values[0:150]
+epochs = range(1, len(loss_values50) + 1)
+plt.plot(epochs, loss_values50, 'b',color = 'blue', label='Training loss')
+plt.plot(epochs, val_loss_values50, 'b',color='red', label='Validation loss')
+plt.rc('font', size = 18)
+plt.title('Training and validation loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.legend()
+plt.xticks(epochs)
+fig = plt.gcf()
+fig.set_size_inches(15,7)
+#fig.savefig('img/25/mrftest&validationlossconv1dlstm.png', dpi=300)
+plt.show()
+
+# ==================line train=======================
 #
 # from timeit import default_timer as timer
 # start = timer()
-# history_line = model.fit([lineData, funcData],
+# history_line = model_Line.fit(lineData,
 #                     lableData,
-#                     batch_size=8,
-#                     epochs=30,
+#                     batch_size=4,
+#                     epochs=100,
 #                     validation_split=0.2,
 #                     verbose=1)
 # end = timer()
-# print("concat训练时间： ", end - start)
-
-
-
-
-# ==================line train=======================
-
-from timeit import default_timer as timer
-start = timer()
-history_line = model_Line.fit(lineData,
-                    lableData,
-                    batch_size=4,
-                    epochs=100,
-                    validation_split=0.2,
-                    verbose=1)
-end = timer()
-print("line训练时间： ", end - start)
-
-
-# ==================func train=======================
-
-from timeit import default_timer as timer
-start = timer()
-history_func = model_func.fit(funcData,
-                    lableData,
-                    batch_size=4,
-                    epochs=100,
-                    validation_split=0.2,
-                    verbose=1)
-end = timer()
-print("func训练时间： ", end - start)
+# print("line训练时间： ", end - start)
+#
+#
+# # ==================func train=======================
+#
+# from timeit import default_timer as timer
+# start = timer()
+# history_func = model_func.fit(funcData,
+#                     lableData,
+#                     batch_size=4,
+#                     epochs=100,
+#                     validation_split=0.2,
+#                     verbose=1)
+# end = timer()
+# print("func训练时间： ", end - start)
 
 
 # # ==================figure of line=======================

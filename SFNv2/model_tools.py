@@ -2,4 +2,4 @@ from time import sleep
 
 
 def concat_output():
-    sleep(1000);
+    sleep(1000)

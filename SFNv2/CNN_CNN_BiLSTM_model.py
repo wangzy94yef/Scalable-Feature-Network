@@ -2,6 +2,10 @@ from contextlib import redirect_stdout
 
 import pandas as pd
 import numpy as np
+import tensorflow
+# from tensorflow.python.keras.layers import Lambda
+# from tensorflow.python.keras.layers import Lambda
+
 import readDataset
 import tensorflow as tf
 
@@ -75,13 +79,17 @@ func_gen = TimeseriesGenerator(
 import math
 import keras
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Dropout, Flatten, Conv1D, MaxPooling1D, concatenate
+from keras.layers import Dense, Activation, Dropout, Flatten, Conv1D, MaxPooling1D, concatenate, Lambda
 from keras.layers.recurrent import LSTM
 from keras import losses, Model, metrics
 from keras import optimizers
 from keras import __version__, Input
 
 #定义网络模型
+
+def expand_dim(x):
+    x1 = tensorflow.expand_dims(x, axis=-1)
+    return x1
 
 # def compound_cnn(width, height, depth, filters = (24, 48), regress = False):
 def compound_cnn(width, height, filters = (24, 48), regress = False):
@@ -111,7 +119,7 @@ def compound_cnn(width, height, filters = (24, 48), regress = False):
     x = Dense(32)(x)
     # x = Dropout(0.2)(x)
 
-    x = Dense(1)(x)
+    # x = Dense(1)(x)
 
     model = Model(inputs, x)
     return model
@@ -123,7 +131,17 @@ print(CNN_line.__class__)
 
 combinedCNNInput = concatenate([CNN_line.output, CNN_func.output])
 
-x = Dense(1, activation = "softmax")(combinedCNNInput)
+# combinedCNNInput = tensorflow.expand_dims(combinedCNNInput, axis=-1)
+# combinedCNNInput = Lambda(expand_dim)(combinedCNNInput)
+combinedCNNInput = Lambda(lambda x : tensorflow.expand_dims(combinedCNNInput, axis=-1))(combinedCNNInput)
+
+
+# print(combinedCNNInput.shape)
+# print(combinedCNNInput.__class__)
+x = LSTM(32, return_sequences=False)(combinedCNNInput)
+x = Dense(32, activation="relu", kernel_initializer="uniform")(x)
+x = Dense(1, activation = "softmax")(x)
+
 
 # Bi-LSTM start...
 
