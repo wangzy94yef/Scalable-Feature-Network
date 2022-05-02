@@ -125,6 +125,13 @@ combinedCNNInput = concatenate([CNN_line.output, CNN_func.output])
 
 x = Dense(1, activation = "softmax")(combinedCNNInput)
 
+# Bi-LSTM start...
+
+
+
+
+# Bi-LSTM end...
+
 model = Model(inputs = [CNN_line.input,CNN_func.input], outputs = x)
 
 print(model.summary())
@@ -133,12 +140,11 @@ with open('CNN_CNN_BiLSTM_summary.txt', 'w') as f:
     with redirect_stdout(f):
         model.summary()
 
-opt = keras.optimizers.rmsprop(lr=0.0001, rho=0.9, epsilon=1e-6, decay=1e-6)
+opt = keras.optimizers.sgd(lr=0.001)
 model.compile(loss='mse', optimizer=opt, metrics=['accuracy'])
 # model.compile(loss='mse',
 #               optimizer=optimizers.SGD(),
 #               metrics=[metrics.Accuracy()])
-
 
 from timeit import default_timer as timer
 start = timer()
@@ -151,7 +157,6 @@ history_line = model.fit([lineData,
                     verbose=1)
 end = timer()
 print("line训练时间： ", end - start)
-
 
 # def generator_Two(generator1,generator2):
 #     while True:

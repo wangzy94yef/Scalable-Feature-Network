@@ -60,7 +60,10 @@ from keras.layers.recurrent import LSTM
 from keras import losses, Model
 from keras import optimizers
 
-opt = keras.optimizers.rmsprop(lr=0.0001, rho=0.9, epsilon=1e-6, decay=1e-6)
+# opt = keras.optimizers.rmsprop(lr=0.0001, rho=0.9, epsilon=1e-6, decay=1e-6)
+opt = keras.optimizers.sgd(lr=0.0001, decay=1e-6)
+# opt = keras.optimizers.Adam(lr=0.0001, decay=1e-6)
+# opt = keras.optimizers.adagrad(lr=0.0001, decay=1e-6)
 
 def build_model_line(input):
     model = Sequential()
@@ -102,7 +105,7 @@ print(model_Line.summary())
 model_func = build_model_func([1, 11, 1])
 print(model_func.summary())
 
-model_concat = np.concatenate([model_Line.outputs, model_func.outputs],)
+model_concat = np.concatenate([model_Line.outputs, model_func.outputs])
 print(model_concat.__class__)
 print("class: !!! : !!!： ",lineData.__class__)
 print("class: !!! : !!!： ",[lineData, funcData].__class__)
@@ -128,7 +131,7 @@ print("class: !!! : !!!： ",[lineData, funcData].__class__)
 #                     validation_split=0.2,
 #                     verbose=1)
 # end = timer()
-# print("line训练时间： ", end - start)
+# print("concat训练时间： ", end - start)
 
 
 
