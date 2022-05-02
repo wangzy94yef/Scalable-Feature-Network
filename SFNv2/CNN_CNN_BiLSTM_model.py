@@ -5,6 +5,8 @@ import numpy as np
 import readDataset
 import tensorflow as tf
 
+from model_tools import concat_output
+
 dataset = pd.read_csv("./PU_dataset_1.csv", header=None)
 # print(dataset.head())
 # print(dataset.tail())
@@ -30,6 +32,7 @@ print(dataset)
 
 lineData = dataset[:, :10]
 funcData = dataset[:, 10:-1]
+# cmsData = dataset[:, :-1]
 lableData = dataset[:, -1]
 print(lineData)
 print(funcData)
@@ -44,29 +47,46 @@ print(amount_of_feature)
 
 lineData = np.reshape(lineData, (lineData.shape[0], lineData.shape[1], 1))
 funcData = np.reshape(funcData, (funcData.shape[0], funcData.shape[1], 1))
+# cmsData = np.reshape(cmsData, (cmsData.shape[0], cmsData.shape[1], 1))
 # lableData = np.reshape(lableData, (lableData.shape[0], lableData[1], 1))
 print(lineData.shape)
 print(funcData.shape)
 print(lableData.shape)
+
+from keras.preprocessing.sequence import TimeseriesGenerator
+
+line_gen = TimeseriesGenerator(
+    lineData,
+    lableData,
+    length=10,
+    shuffle=False,
+    reverse=False,
+    batch_size=8
+)
+func_gen = TimeseriesGenerator(
+    funcData,
+    lableData,
+    length=10,
+    shuffle=False,
+    reverse=False,
+    batch_size=8
+)
 
 import math
 import keras
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Dropout, Flatten, Conv1D, MaxPooling1D, concatenate
 from keras.layers.recurrent import LSTM
-from keras import losses, Model
+from keras import losses, Model, metrics
 from keras import optimizers
 from keras import __version__, Input
 
 #定义网络模型
 
-input_line = tf.keras.layers.Input(shape=(1, 10))
-
 # def compound_cnn(width, height, depth, filters = (24, 48), regress = False):
 def compound_cnn(width, height, filters = (24, 48), regress = False):
-# def compound_cnn(height, depth, filters = (24, 48), regress = False):
+
     input_shape = (height, width)
-    chanDim = -1
     inputs = Input(shape=input_shape)
 
     for(i, f) in enumerate(filters):
@@ -89,21 +109,21 @@ def compound_cnn(width, height, filters = (24, 48), regress = False):
     x = Flatten()(x)
 
     x = Dense(32)(x)
-    x = Dropout(0.2)(x)
+    # x = Dropout(0.2)(x)
 
-    # x = Dense(1)(x)
+    x = Dense(1)(x)
 
     model = Model(inputs, x)
     return model
 
-# CNN_line = compound_cnn(1, 10, 1, regress=False)
-# CNN_func = compound_cnn(1, 11, 1, regress=False)
 CNN_line = compound_cnn(1, 10, regress=False)
 CNN_func = compound_cnn(1, 11, regress=False)
 
+print(CNN_line.__class__)
+
 combinedCNNInput = concatenate([CNN_line.output, CNN_func.output])
 
-x = Dense(22, activation = "softmax")(combinedCNNInput)
+x = Dense(1, activation = "softmax")(combinedCNNInput)
 
 model = Model(inputs = [CNN_line.input,CNN_func.input], outputs = x)
 
@@ -114,15 +134,35 @@ with open('CNN_CNN_BiLSTM_summary.txt', 'w') as f:
         model.summary()
 
 opt = keras.optimizers.rmsprop(lr=0.0001, rho=0.9, epsilon=1e-6, decay=1e-6)
-model.compile(loss='mse', optimizer='SGD', metrics=['accuracy'])
+model.compile(loss='mse', optimizer=opt, metrics=['accuracy'])
+# model.compile(loss='mse',
+#               optimizer=optimizers.SGD(),
+#               metrics=[metrics.Accuracy()])
+
 
 from timeit import default_timer as timer
 start = timer()
-history_func = model.fit([CNN_line.input,CNN_func.input],
+history_line = model.fit([lineData,
+                         funcData],
                     lableData,
                     batch_size=8,
                     epochs=30,
                     validation_split=0.2,
-                    verbose=2)
+                    verbose=1)
 end = timer()
-print("训练时间： ", end - start)
+print("line训练时间： ", end - start)
+
+
+# def generator_Two(generator1,generator2):
+#     while True:
+#         for x1, x2 in zip(generator1,generator2):
+#             yield x1,x2
+#
+# history_sfn = model.fit_generator(
+#     generator=generator_Two(line_gen, func_gen),
+#     samples_per_epoch = math.ceil(65513/8 * 0.8),
+#     validation_data = generator_Two(line_gen,func_gen),
+#     validation_steps = math.ceil(65513/8 * 0.2),
+#     nb_epoch=30
+# )
+
