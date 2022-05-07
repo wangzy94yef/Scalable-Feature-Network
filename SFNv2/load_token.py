@@ -89,29 +89,32 @@ from keras_bert import get_pretrained, PretrainedList, get_checkpoint_paths, ext
 
 model_path = get_pretrained(PretrainedList.multi_cased_base)
 paths = get_checkpoint_paths(model_path)
-data = token_list
+Data = token_list
 # embeddings = extract_embeddings(model_path, data)
 
 
 
 import codecs
-token_dict = {}
-with codecs.open(paths.vocab, 'r', encoding='utf8') as reader:
-    for line in reader:
-        token = line.strip()
-        token_dict[token] = len(token_dict)
 
-from keras_bert import load_trained_model_from_checkpoint
-model = load_trained_model_from_checkpoint(paths.config, paths.checkpoint)
+def getTokenEmbedded(tokenData):
+    token_dict = {}
+    with codecs.open(paths.vocab, 'r', encoding='utf8') as reader:
+        for line in reader:
+            token = line.strip()
+            token_dict[token] = len(token_dict)
 
-from keras_bert import Tokenizer
-import numpy as np
-tokenizer = Tokenizer(token_dict)
-embedded_token_list = []
-for text in data:
-    indices, segments = tokenizer.encode(first=text, max_len=256)
-    # print(indices[:10])
-    # print(segments[:10])
-    predicts = model.predict([np.array([indices]), np.array([segments])])[0]
-    embedded_token_list.append(predicts)
-    print(predicts[:10])
+    from keras_bert import load_trained_model_from_checkpoint
+    model = load_trained_model_from_checkpoint(paths.config, paths.checkpoint)
+
+    from keras_bert import Tokenizer
+    import numpy as np
+    tokenizer = Tokenizer(token_dict)
+    embedded_token_list = []
+    for text in tokenData:
+        indices, segments = tokenizer.encode(first=text, max_len=512)
+        # print(indices[:10])
+        # print(segments[:10])
+        predicts = model.predict([np.array([indices]), np.array([segments])])[0]
+        embedded_token_list.append(predicts)
+        print(predicts[:10])
+    return token_dict

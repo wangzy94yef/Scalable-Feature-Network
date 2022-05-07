@@ -61,10 +61,7 @@ from keras import losses, Model
 from keras import optimizers
 from keras import backend as K
 
-# opt = keras.optimizers.rmsprop(lr=0.0001, rho=0.9, epsilon=1e-6, decay=1e-6)
 opt = keras.optimizers.sgd(lr=0.0001, decay=1e-6)
-# opt = keras.optimizers.Adam(lr=0.0001, decay=1e-6)
-# opt = keras.optimizers.adagrad(lr=0.0001, decay=1e-6)
 
 def build_model_line(input):
 
@@ -129,6 +126,49 @@ def build_model_func(input):
     '''
 
     return model
+
+'''
+通过load_token得到embedded的token的ndarray
+'''
+
+import os
+
+current_path1 = os.path.abspath(__file__)
+print(current_path1)
+
+# re.search('^[0-9]')
+
+token_arr = np.loadtxt(
+    './multiscale_dataset/cgd/cwe119_cgd.txt',
+    dtype=str,
+    # comments=re.search('^[0-9]'),
+    comments='-',
+    delimiter='---------------------------------',
+    encoding='UTF-8'
+)
+
+print(token_arr[6] == "0")
+
+n = 0
+token_list = []
+
+str = ""
+for t in token_arr:
+    if t != "0" and t != "1":
+        str += t
+    else:
+        # print(str)
+        token_list.append(str)
+        str = ""
+
+for i in range(10):
+    print(token_list[i])
+
+import load_token
+'''获取经过词嵌入的token'''
+embeddedToken = load_token.getTokenEmbedded(token_list)
+
+# =============================================================
 
 model_Line = build_model_line([10, 1])
 # print(model_Line.summary())
