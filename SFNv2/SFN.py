@@ -138,6 +138,7 @@ model_concat = Model(inputs = [model_Line.input, model_func.input], outputs = mo
 
 opt = keras.optimizers.SGD(lr=0.0001, decay=1e-6)
 model_concat.compile(loss='mse', optimizer=opt, metrics=['accuracy'])
+
 print(model_concat.summary())
 #
 # model_concat = Dense(1, activation="softmax")(model_concat)
