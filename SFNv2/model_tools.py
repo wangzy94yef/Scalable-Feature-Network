@@ -1,13 +1,5 @@
 from time import sleep
-import math
-from keras.models import Sequential
-from keras.layers import Dense, Activation, Dropout, Flatten, Conv1D, MaxPooling1D, concatenate, Input
-from keras.layers.recurrent import LSTM
-from keras import losses, Model
-from keras import optimizers
-from keras import backend as K
 import keras
-import pandas as pd
 import numpy as np
 import SFN
 

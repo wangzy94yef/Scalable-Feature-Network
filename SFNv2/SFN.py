@@ -51,13 +51,8 @@ print(lableData.shape)
 
 # ===============================token=====================================
 
-import math
-from keras.models import Sequential
-from keras.layers import Dense, Activation, Dropout, Flatten, Conv1D, MaxPooling1D, concatenate, Input
-from keras.layers.recurrent import LSTM
-from keras import losses, Model
-from keras import optimizers
-from keras import backend as K
+from keras.layers import Dense, Dropout, concatenate
+from keras import Model
 
 '''
 通过load_token得到embedded的token的ndarray
