@@ -2,7 +2,7 @@ import keras
 import pandas as pd
 import numpy as np
 
-dataset = pd.read_csv("SFNv2/multiscale_dataset/cms/PU_dataset_1.csv", header=None)
+dataset = pd.read_csv("./multiscale_dataset/cms/PU_dataset_1.csv", header=None)
 
 amount_of_feature = len(dataset.columns)
 
