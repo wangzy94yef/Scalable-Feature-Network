@@ -135,6 +135,10 @@ print(model_concat.summary())
 #
 # model = Model(inputs = [model_Line.input,model_func.input], outputs = model_concat)
 
+'''将token和CNNs的输出结合，训练Bi-LSTM'''
+import presentation_learning
+
+
 # # ==================concat train=======================
 
 from timeit import default_timer as timer
