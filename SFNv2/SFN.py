@@ -135,10 +135,6 @@ print(model_concat.summary())
 #
 # model = Model(inputs = [model_Line.input,model_func.input], outputs = model_concat)
 
-'''将token和CNNs的输出结合，训练Bi-LSTM'''
-import presentation_learning
-
-
 # # ==================concat train=======================
 
 from timeit import default_timer as timer
@@ -146,13 +142,36 @@ start = timer()
 history_concat = model_concat.fit([lineData, funcData],
                     lableData,
                     batch_size=32,
-                    epochs=30,
+                    epochs=300,
                     validation_split=0.2,
                     verbose=1)
 end = timer()
 print("concat训练时间： ", end - start)
 
-# # ==================concat figure=======================
+# # ==================build presentation model=======================
+
+'''将token和CNNs的输出结合，训练Bi-LSTM'''
+import presentation_learning
+
+presentation = {}
+for i in range(len(token_list)):
+    presentation[i] = [token_list[i], history_concat[i]]
+
+model_presentation = presentation_learning.build_presentation_learning(presentation)
+model_presentation.compile(loss='mse', optimizer=opt, metrics=['accuracy'])
+
+from timeit import default_timer as timer
+start = timer()
+history_presentation = model_presentation.fit(presentation,
+                    lableData,
+                    batch_size=32,
+                    epochs=30,
+                    validation_split=0.2,
+                    verbose=1)
+end = timer()
+print("presentation训练时间： ", end - start)
+
+# # ==================get view of results=======================
 
 history_dict_line = history_concat.history
 history_dict_line.keys()
@@ -161,6 +180,31 @@ import matplotlib.pyplot as plt
 
 loss_values = history_dict_line['loss']
 val_loss_values = history_dict_line['val_loss']
+loss_values50 = loss_values[0:150]
+val_loss_values50 = val_loss_values[0:150]
+epochs = range(1, len(loss_values50) + 1)
+plt.plot(epochs, loss_values50, 'b',color = 'blue', label='Training loss')
+plt.plot(epochs, val_loss_values50, 'b',color='red', label='Validation loss')
+plt.rc('font', size = 18)
+plt.title('Training and validation loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.legend()
+plt.xticks(epochs)
+fig = plt.gcf()
+fig.set_size_inches(15,7)
+#fig.savefig('img/25/mrftest&validationlossconv1dlstm.png', dpi=300)
+plt.show()
+
+# # ==================get view of results=======================
+
+history_dict_presentation = history_presentation.history
+history_dict_presentation.keys()
+
+import matplotlib.pyplot as plt
+
+loss_values = history_dict_presentation['loss']
+val_loss_values = history_dict_presentation['val_loss']
 loss_values50 = loss_values[0:150]
 val_loss_values50 = val_loss_values[0:150]
 epochs = range(1, len(loss_values50) + 1)

@@ -10,7 +10,7 @@ from keras import backend as K
 
 opt = keras.optimizers.sgd(lr=0.0001, decay=1e-6)
 
-def build_model_line(input):
+def build_presentation_learning(input):
 
     inputs = Input(shape=input)
     x = Dense(128, activation="relu", kernel_initializer="uniform")(inputs)
@@ -20,3 +20,5 @@ def build_model_line(input):
     # model.add(Dropout(0.2))
     x = Dense(1, activation="relu", kernel_initializer="uniform")(x)
     model = Model(inputs=inputs, outputs=x)
+    print(model.summary())
+    return model
