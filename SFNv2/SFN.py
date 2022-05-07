@@ -1,11 +1,8 @@
 import keras
 import pandas as pd
 import numpy as np
-import readDataset
 
-dataset = pd.read_csv("./PU_dataset_1.csv", header=None)
-# print(dataset.head())
-# print(dataset.tail())
+dataset = pd.read_csv("SFNv2/multiscale_dataset/cms/PU_dataset_1.csv", header=None)
 
 amount_of_feature = len(dataset.columns)
 
@@ -48,10 +45,11 @@ print(amount_of_feature)
 
 lineData = np.reshape(lineData, (lineData.shape[0], lineData.shape[1], 1))
 funcData = np.reshape(funcData, (funcData.shape[0], funcData.shape[1], 1))
-# lableData = np.reshape(lableData, (lableData.shape[0], lableData[1], 1))
 print(lineData.shape)
 print(funcData.shape)
 print(lableData.shape)
+
+# ===============================token=====================================
 
 import math
 from keras.models import Sequential
@@ -72,15 +70,26 @@ print(current_path1)
 
 # re.search('^[0-9]')
 
-token_arr = np.loadtxt(
+token_arr_1 = np.loadtxt(
     './multiscale_dataset/cgd/cwe119_cgd.txt',
     dtype=str,
-    # comments=re.search('^[0-9]'),
     comments='-',
     delimiter='---------------------------------',
     encoding='UTF-8'
 )
 
+token_arr_2 = np.loadtxt(
+    './multiscale_dataset/cgd/cwe399_cgd.txt',
+    dtype=str,
+    comments='-',
+    delimiter='---------------------------------',
+    encoding='UTF-8'
+)
+
+token_arr = np.append(token_arr_1, token_arr_2)
+print("length of token set 1: ", len(token_arr_1))
+print("length of token set 2: ", len(token_arr_2))
+print("length of token set all: ", len(token_arr))
 print(token_arr[6] == "0")
 
 n = 0
@@ -155,7 +164,8 @@ import presentation_learning
 
 presentation = {}
 for i in range(len(token_list)):
-    presentation[i] = [token_list[i], history_concat[i]]
+    # presentation[i] = [token_list[i], history_concat[i]]
+    presentation[i] = np.append(token_list[i], history_concat[i])
 
 model_presentation = presentation_learning.build_presentation_learning(presentation)
 model_presentation.compile(loss='mse', optimizer=opt, metrics=['accuracy'])
@@ -164,7 +174,7 @@ from timeit import default_timer as timer
 start = timer()
 history_presentation = model_presentation.fit(presentation,
                     lableData,
-                    batch_size=32,
+                    batch_size=16,
                     epochs=30,
                     validation_split=0.2,
                     verbose=1)

@@ -43,7 +43,7 @@ import pandas as pd
 import numpy as np
 import readDataset
 
-dataset = pd.read_csv("./PU_dataset_1.csv", header=None)
+dataset = pd.read_csv("SFNv2/multiscale_dataset/cms/PU_dataset_1.csv", header=None)
 # print(dataset.head())
 # print(dataset.tail())
 

@@ -11,7 +11,7 @@ import tensorflow as tf
 
 from model_tools import concat_output
 
-dataset = pd.read_csv("./PU_dataset_1.csv", header=None)
+dataset = pd.read_csv("SFNv2/multiscale_dataset/cms/PU_dataset_1.csv", header=None)
 # print(dataset.head())
 # print(dataset.tail())
 

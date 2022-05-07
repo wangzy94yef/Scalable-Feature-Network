@@ -3,7 +3,7 @@ from sklearn.model_selection import train_test_split
 import numpy
 
 seed = 7
-cms_dataset = pandas.read_csv("./PU_dataset_1.csv", header=None)
+cms_dataset = pandas.read_csv("SFNv2/multiscale_dataset/cms/PU_dataset_1.csv", header=None)
 # print(cms_dataset.head())
 dataset = cms_dataset.values
 line_cms = dataset[:, :10]
