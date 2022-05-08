@@ -4,6 +4,7 @@ import numpy as np
 import re
 
 # get token===============================
+from contextlib2 import redirect_stdout
 from keras_preprocessing.text import one_hot
 
 current_path1 = os.path.abspath(__file__)
@@ -55,13 +56,6 @@ dataset = dataset.values
 print("values")
 print(dataset)
 
-# dt = []
-# sequence_length = 22
-# for index in range(len(dataset) - sequence_length):
-#     dt.append(dataset[index : index + sequence_length])
-# print(dt)
-#
-
 dataset = np.array(dataset)
 print(dataset)
 
@@ -72,14 +66,7 @@ print(lableData.shape)
 print("========================================================")
 
 # embedding======================================================
-import math
-from keras.models import Sequential
-from keras.layers import Dense, Activation, Dropout, Flatten, Conv1D, MaxPooling1D, concatenate, Input, Embedding
-from keras.layers.recurrent import LSTM
-from keras import losses, Model
-from keras import optimizers
-from keras import backend as K
-from keras.models import Sequential
+
 from keras_bert import get_pretrained, PretrainedList, get_checkpoint_paths, extract_embeddings
 #
 # vocab_size = 50;
@@ -117,4 +104,9 @@ def getTokenEmbedded(tokenData):
         predicts = model.predict([np.array([indices]), np.array([segments])])[0]
         embedded_token_list.append(predicts)
         print(predicts[:10])
+
+        with open('embedded_token.txt', 'w') as f:
+            with redirect_stdout(f):
+                predicts[:10]
+
     return token_dict
